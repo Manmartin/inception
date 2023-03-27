@@ -1,0 +1,25 @@
+server {
+	# ipv4 & ipv6
+	listen 443 ssl;
+	listen [::]:443 ssl;
+
+	server_name manmarti.42.fr;
+	
+	ssl_certificate /etc/ssl/ssl.crt;
+	ssl_certificate_key /etc/ssl/ssl.key;	
+	ssl_protocols TLSv1.3;
+	
+	root /var/www/html/manmarti.42.fr;
+	index index.php;
+
+    	charset utf-8;
+	location / {
+		try_files $uri $uri/ /index.php$is_args$args;
+	}
+	location ~ \.php$ {
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass wordpress:9000;
+            fastcgi_index index.php;
+            include fastcgi.conf;
+    }
+}

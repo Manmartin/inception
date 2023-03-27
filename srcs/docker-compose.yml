@@ -1,0 +1,77 @@
+version: "3.9"
+
+volumes:
+  web:
+    name: web
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: bind
+      device: '/home/manmarti/data/web'
+  db:
+    name: db
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: bind
+      device: '/home/manmarti/data/db'
+
+
+networks:
+  inception:
+    driver: bridge
+
+services:
+  nginx:
+    container_name: nginx 
+
+    build: ./requirements/nginx/
+    ports:
+      - 443:443
+    volumes:
+      - web:/var/www/html
+    networks:
+      - inception
+
+    depends_on: 
+      - wordpress
+    restart: on-failure
+  
+  wordpress:
+    container_name: wordpress
+
+    build: ./requirements/wordpress
+    volumes:
+      - web:/var/www/html
+    networks:
+      - inception
+
+    environment:
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USR: ${WP_DB_USR}
+      WP_DB_PASSWD: ${WP_DB_PASSWD}
+      WP_ADMIN_NAME: ${WP_ADMIN_NAME}
+      WP_ADMIN_PASSWD: ${WP_ADMIN_PASSWD}
+      WP_USR_NAME: ${WP_USR_NAME}
+      WP_USR_PASSWD: ${WP_USR_PASSWD}
+
+    depends_on: 
+      - mariadb
+    restart: on-failure
+
+  mariadb:
+    container_name: mariadb
+
+    build: ./requirements/mariadb/
+    volumes:
+      - db:/var/lib/mysql/
+    networks:
+      - inception
+
+    environment:
+      MARIADB_ROOT_PASSWD: ${MARIADB_ROOT_PASSWD}
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USR: ${WP_DB_USR}
+      WP_DB_PASSWD: ${WP_DB_PASSWD}
+
+    restart: on-failure
